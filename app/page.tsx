@@ -1,23 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { LayoutDashboard, BotMessageSquare, Users } from 'lucide-react';
-
-// --- 常數定義 ---
-export const PTT_TAGS = [
-  { value: '標的', label: '[標的]' },
-  { value: '盤中', label: '[盤中]' },
-  { value: '盤後', label: '[盤後]' },
-  { value: '新聞', label: '[新聞]' },
-  { value: '情報', label: '[情報]' },
-  { value: '請益', label: '[請益]' },
-  { value: '心得', label: '[心得]' },
-  { value: '閒聊', label: '[閒聊]' },
-];
+import { LayoutDashboard, Users } from 'lucide-react';
 
 // --- Components ---
 
-// 1. 儀表板 Component
 const Dashboard = () => {
   return (
     <div className="w-full h-[calc(100vh-64px)] bg-[#373536] p-4 md:p-8">
@@ -25,7 +12,7 @@ const Dashboard = () => {
         <iframe
           title="Power BI Dashboard"
           className="absolute top-0 left-0 w-full h-full border-0"
-          src="https://app.powerbi.com/reportEmbed?..." // 請將此處替換為您的 Power BI 網址
+          src="https://app.powerbi.com/reportEmbed?..." // ⚠️ 記得將此處替換為財金系同學給的 Power BI 網址
           allowFullScreen
         ></iframe>
       </div>
@@ -33,155 +20,26 @@ const Dashboard = () => {
   );
 };
 
-// 2. 情緒分析 Component (表單升級版)
-const EmotionAnalysis = () => {
-  // 定義表單狀態
-  const [tag, setTag] = useState<string>('標的'); // 預設對應 PTT_TAGS 的第一個 value
-  const [title, setTitle] = useState<string>('');
-  const [pushType, setPushType] = useState<string>('推');
-  const [message, setMessage] = useState<string>('');
-  const [passcode, setPasscode] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [result, setResult] = useState<number | null>(null);
-
-  // 處理送出按鈕點擊事件
-const handleSubmit = async () => {
-    if (!title || !message) {
-      alert('請完整輸入標題與推文內容！');
-      return;
-    }
-    
-    setIsLoading(true);
-    setResult(null);
-
-    try {
-      // 呼叫我們建立好的 Next.js 後端 API
-      const res = await fetch('/api/sentiment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, message, pushType, passcode })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || '分析失敗');
-      }
-
-      setResult(data.score); // 拿到 7:3 加權後的最終分數
-    } catch (error: any) {
-      alert(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="w-full min-h-[calc(100vh-64px)] bg-[#373536] text-white p-6 md:p-10 flex flex-col">
-      <div className="grid grid-cols-1 md:grid-cols-[1fr,2fr] gap-x-6 gap-y-10 max-w-7xl mx-auto w-full flex-grow mt-10">
-        
-        {/* 第一行：標題 + (黃色下拉選單 + 白色輸入框) */}
-        <div className="col-span-1 md:col-span-1 flex flex-col justify-start">
-            <h3 className="text-xl font-medium mt-1">標題</h3>
-        </div>
-        <div className="col-span-1 md:col-span-1 flex flex-col sm:flex-row gap-4 items-center">
-          {/* 原生黃色下拉選單 */}
-          <select 
-            value={tag}
-            onChange={(e) => setTag(e.target.value)}
-            className="flex-1 w-full bg-[#f4d314] text-black rounded-lg p-3 outline-none cursor-pointer text-lg font-medium appearance-auto"
-          >
-            {PTT_TAGS.map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-          {/* 白色標題輸入框 */}
-          <input 
-              type="text" 
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="flex-[2] w-full p-3 rounded-lg bg-white border border-gray-300 text-black outline-none focus:ring-2 focus:ring-[#f4d314]" 
-              placeholder="請輸入文章標題..." 
-          />
-        </div>
-
-        {/* 第二行：推文 + (灰色下拉選單 + 白色輸入框) */}
-        <div className="col-span-1 md:col-span-1 flex flex-col justify-start">
-            <h3 className="text-xl font-medium mt-1">推文</h3>
-        </div>
-        <div className="col-span-1 md:col-span-1 flex flex-col sm:flex-row gap-4 items-center">
-          {/* 原生灰色下拉選單 */}
-          <select 
-            value={pushType}
-            onChange={(e) => setPushType(e.target.value)}
-            className="flex-1 w-full bg-gray-300 text-black rounded-lg p-3 outline-none cursor-pointer text-lg font-medium appearance-auto"
-          >
-            <option value="推">推</option>
-            <option value="→ (中立)">→ (中立)</option>
-            <option value="噓">噓</option>
-          </select>
-          {/* 白色推文內容輸入框 */}
-          <input 
-              type="text" 
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="flex-[2] w-full p-3 rounded-lg bg-white border border-gray-300 text-black outline-none focus:ring-2 focus:ring-[#f4d314]" 
-              placeholder="請輸入推文內容..." 
-          />
-        </div>
-
-        {/* 送出按鈕與密碼列 */}
-        <div className="col-span-1 md:col-span-2 flex flex-col items-end gap-4 mt-6">
-          <div className="flex items-center gap-4 w-full justify-end">
-             {/* 展示授權碼輸入框 */}
-             <input 
-                type="password" 
-                value={passcode}
-                onChange={(e) => setPasscode(e.target.value)}
-                placeholder="輸入展示授權碼" 
-                className="p-3 rounded-lg bg-gray-700 text-white outline-none border border-gray-600 focus:border-[#f4d314] w-48 text-center"
-             />
-             <button 
-               onClick={handleSubmit}
-               disabled={isLoading}
-               className="px-10 py-3 rounded-lg bg-[#f4d314] text-black font-bold text-lg hover:bg-yellow-400 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-             >
-               {isLoading ? '演算法運算中...' : '送出分析'}
-             </button>
-          </div>
-          
-          {/* 分析結果動態顯示區 */}
-          {result !== null && (
-            <div className={`mt-6 w-full p-6 rounded-xl border-2 flex items-center justify-between transition-all duration-500
-              ${result > 0.2 ? 'border-red-500 bg-red-500/10' : 
-                result < -0.2 ? 'border-green-500 bg-green-500/10' : 
-                'border-gray-400 bg-gray-400/10'}`
-            }>
-              <span className="text-xl font-bold">BERT 綜合情緒指數</span>
-              <div className="flex items-center gap-3">
-                <span className="text-4xl font-extrabold tracking-wider">
-                  {result > 0 ? '+' : ''}{result}
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-
-      </div>
-    </div>
-  );
-};
-
-// 3. 團隊名單 Component (佔位用)
 const TeamList = () => {
   return (
-    <div className="w-full min-h-[calc(100vh-64px)] bg-[#373536] flex items-center justify-center text-white">
-      <h1 className="text-3xl font-bold flex items-center gap-3">
-        <Users className="w-8 h-8" />
-        團隊名單 (建置中...)
-      </h1>
+    <div className="w-full min-h-[calc(100vh-64px)] bg-[#373536] p-8 md:p-16 flex flex-col items-center text-white">
+      <div className="max-w-3xl w-full bg-gray-800 rounded-2xl p-10 shadow-xl border border-gray-700 mt-10">
+        <h1 className="text-3xl font-bold flex items-center justify-center gap-3 mb-10 text-[#f4d314]">
+          <Users className="w-8 h-8" />
+          Credits
+        </h1>
+        
+        <div className="space-y-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-700 pb-4">
+            <span className="text-xl font-medium">侯沛萱</span>
+            <span className="text-xl text-lg">蔡宜庭</span>
+            <span className="text-xl text-lg">簡聿臻</span>
+            <span className="text-xl text-lg">劉冠陞</span>
+            <span className="text-xl text-lg">李宣璋</span>
+            <span className="text-xl text-lg">楊　昊</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -189,18 +47,17 @@ const TeamList = () => {
 // --- Main Page ---
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'emotion' | 'team'>('emotion');
+  // 預設直接顯示儀表板
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'team'>('dashboard');
 
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
-      case 'emotion':
-        return <EmotionAnalysis />;
       case 'team':
         return <TeamList />;
       default:
-        return <EmotionAnalysis />;
+        return <Dashboard />;
     }
   };
 
@@ -212,26 +69,30 @@ export default function Home() {
           投資人情緒與大盤走勢之關聯性
         </div>
         
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-6 items-center">
+          {/* 儀表板按鈕 */}
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`flex items-center gap-2 transition-opacity duration-200 ${
-              activeTab === 'dashboard' ? 'opacity-100' : 'opacity-70 hover:opacity-90'
+              activeTab === 'dashboard' ? 'opacity-100 text-[#f4d314]' : 'opacity-70 hover:opacity-90'
             }`}
           >
-            <LayoutDashboard className="w-5 h-5" />
+            <LayoutDashboard className="w-6 h-6" />
+            <span className="hidden sm:inline font-medium">儀表板</span>
           </button>
 
+          {/* 團隊名單按鈕 */}
           <button
-            onClick={() => setActiveTab('emotion')}
+            onClick={() => setActiveTab('team')}
             className={`flex items-center gap-2 transition-opacity duration-200 ${
-              activeTab === 'emotion' ? 'opacity-100' : 'opacity-70 hover:opacity-90'
+              activeTab === 'team' ? 'opacity-100 text-[#f4d314]' : 'opacity-70 hover:opacity-90'
             }`}
           >
-            <BotMessageSquare className="w-5 h-5" />
+            <Users className="w-6 h-6" />
+            <span className="hidden sm:inline font-medium">Credits</span>
           </button>
 
-          <span className="text-white opacity-90 text-sm ml-2 hidden sm:inline">
+          <span className="text-gray-300 border-l border-gray-600 pl-4 ml-2 hidden sm:inline">
             第二組
           </span>
         </div>
