@@ -30,13 +30,13 @@ const TeamList = () => {
         </h1>
         
         <div className="space-y-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-700 pb-4">
+          <div className="flex flex-col md:flex-row justify-between items-center border-b border-gray-700 pb-4 gap-4">
             <span className="text-xl font-medium">侯沛萱</span>
-            <span className="text-xl text-lg">蔡宜庭</span>
-            <span className="text-xl text-lg">簡聿臻</span>
-            <span className="text-xl text-lg">劉冠陞</span>
-            <span className="text-xl text-lg">李宣璋</span>
-            <span className="text-xl text-lg">楊　昊</span>
+            <span className="text-lg">蔡宜庭</span>
+            <span className="text-lg">簡聿臻</span>
+            <span className="text-lg">劉冠陞</span>
+            <span className="text-lg">李宣璋</span>
+            <span className="text-lg">楊　昊</span>
           </div>
         </div>
       </div>
