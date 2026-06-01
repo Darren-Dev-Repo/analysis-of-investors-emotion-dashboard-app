@@ -3,13 +3,24 @@
 import { useState } from 'react';
 import { LayoutDashboard, BotMessageSquare, Users } from 'lucide-react';
 
+// --- 常數定義 ---
+export const PTT_TAGS = [
+  { value: '標的', label: '[標的]' },
+  { value: '盤中', label: '[盤中]' },
+  { value: '盤後', label: '[盤後]' },
+  { value: '新聞', label: '[新聞]' },
+  { value: '情報', label: '[情報]' },
+  { value: '請益', label: '[請益]' },
+  { value: '心得', label: '[心得]' },
+  { value: '閒聊', label: '[閒聊]' },
+];
+
 // --- Components ---
 
 // 1. 儀表板 Component
 const Dashboard = () => {
   return (
     <div className="w-full h-[calc(100vh-64px)] bg-[#373536] p-4 md:p-8">
-      {/* RWD iframe 容器 */}
       <div className="relative w-full h-full bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700">
         <iframe
           title="Power BI Dashboard"
@@ -23,61 +34,89 @@ const Dashboard = () => {
   );
 };
 
-// 2. 情緒分析 Component
+// 2. 情緒分析 Component (表單升級版)
 const EmotionAnalysis = () => {
+  // 定義表單狀態
+  const [tag, setTag] = useState<string>('標的'); // 預設對應 PTT_TAGS 的第一個 value
+  const [title, setTitle] = useState<string>('');
+  const [pushType, setPushType] = useState<string>('推');
+  const [message, setMessage] = useState<string>('');
+
+  // 處理送出按鈕點擊事件
+  const handleSubmit = () => {
+    console.log('--- 表單送出資料 ---');
+    console.log('標籤 (tag):', tag);
+    console.log('標題 (title):', title);
+    console.log('推/噓 (pushType):', pushType);
+    console.log('推文內容 (message):', message);
+  };
+
   return (
-    <div className="w-full min-h-[calc(100vh-64px)] bg-[#373536] p-4 md:p-8 flex justify-center items-start">
-      <div className="w-full max-w-2xl bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-700 space-y-6 text-white mt-10">
-        <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
-          <BotMessageSquare className="w-6 h-6 text-[#f4d314]" />
-          情緒分析參數設定
-        </h2>
-
-        {/* 下拉選單 1：標籤 */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm text-gray-300">標籤 (Tag)</label>
-          <select className="p-3 rounded-lg bg-gray-700 border border-gray-600 text-white outline-none focus:border-[#f4d314] focus:ring-1 focus:ring-[#f4d314] transition-all">
-            <option value="">請選擇標籤...</option>
-            <option value="tech">科技</option>
-            <option value="finance">財經</option>
-            <option value="politics">政治</option>
-          </select>
+    <div className="w-full min-h-[calc(100vh-64px)] bg-[#373536] text-white p-6 md:p-10 flex flex-col">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr,2fr] gap-x-6 gap-y-10 max-w-7xl mx-auto w-full flex-grow mt-10">
+        
+        {/* 第一行：標題 + (黃色下拉選單 + 白色輸入框) */}
+        <div className="col-span-1 md:col-span-1 flex flex-col justify-start">
+            <h3 className="text-xl font-medium mt-1">標題</h3>
         </div>
-
-        {/* 下拉選單 2：推/噓 */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm text-gray-300">評價 (推/噓)</label>
-          <select className="p-3 rounded-lg bg-gray-700 border border-gray-600 text-white outline-none focus:border-[#f4d314] focus:ring-1 focus:ring-[#f4d314] transition-all">
-            <option value="">請選擇評價...</option>
-            <option value="push">推 (Positive)</option>
-            <option value="boo">噓 (Negative)</option>
+        <div className="col-span-1 md:col-span-1 flex flex-col sm:flex-row gap-4 items-center">
+          {/* 原生黃色下拉選單 */}
+          <select 
+            value={tag}
+            onChange={(e) => setTag(e.target.value)}
+            className="flex-1 w-full bg-[#f4d314] text-black rounded-lg p-3 outline-none cursor-pointer text-lg font-medium appearance-auto"
+          >
+            {PTT_TAGS.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
           </select>
-        </div>
-
-        {/* 文字輸入框 1 */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm text-gray-300">關鍵字輸入</label>
+          {/* 白色標題輸入框 */}
           <input 
-            type="text" 
-            className="p-3 rounded-lg bg-gray-700 border border-gray-600 text-white outline-none focus:border-[#f4d314] focus:ring-1 focus:ring-[#f4d314] transition-all" 
-            placeholder="請輸入欲分析的關鍵字..." 
+              type="text" 
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="flex-[2] w-full p-3 rounded-lg bg-white border border-gray-300 text-black outline-none focus:ring-2 focus:ring-[#f4d314]" 
+              placeholder="請輸入文章標題..." 
           />
         </div>
 
-        {/* 文字輸入框 2 */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm text-gray-300">備註說明</label>
+        {/* 第二行：推文 + (灰色下拉選單 + 白色輸入框) */}
+        <div className="col-span-1 md:col-span-1 flex flex-col justify-start">
+            <h3 className="text-xl font-medium mt-1">推文</h3>
+        </div>
+        <div className="col-span-1 md:col-span-1 flex flex-col sm:flex-row gap-4 items-center">
+          {/* 原生灰色下拉選單 */}
+          <select 
+            value={pushType}
+            onChange={(e) => setPushType(e.target.value)}
+            className="flex-1 w-full bg-gray-300 text-black rounded-lg p-3 outline-none cursor-pointer text-lg font-medium appearance-auto"
+          >
+            <option value="推">推</option>
+            <option value="→ (中立)">→ (中立)</option>
+            <option value="噓">噓</option>
+          </select>
+          {/* 白色推文內容輸入框 */}
           <input 
-            type="text" 
-            className="p-3 rounded-lg bg-gray-700 border border-gray-600 text-white outline-none focus:border-[#f4d314] focus:ring-1 focus:ring-[#f4d314] transition-all" 
-            placeholder="其他補充資訊..." 
+              type="text" 
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="flex-[2] w-full p-3 rounded-lg bg-white border border-gray-300 text-black outline-none focus:ring-2 focus:ring-[#f4d314]" 
+              placeholder="請輸入推文內容..." 
           />
         </div>
 
-        {/* 送出按鈕 */}
-        <button className="w-full py-3 mt-4 rounded-lg bg-[#f4d314] text-black font-bold text-lg hover:bg-yellow-400 active:scale-[0.98] transition-all duration-200">
-          執行分析
-        </button>
+        {/* 送出按鈕列 */}
+        <div className="col-span-1 md:col-span-2 flex justify-end mt-10">
+          <button 
+            onClick={handleSubmit}
+            className="px-10 py-3 rounded-lg bg-[#f4d314] text-black font-bold text-lg hover:bg-yellow-400 active:scale-95 transition-all"
+          >
+            送出
+          </button>
+        </div>
+
       </div>
     </div>
   );
@@ -98,10 +137,8 @@ const TeamList = () => {
 // --- Main Page ---
 
 export default function Home() {
-  // 使用 React State 控制當前顯示的頁面模組
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'emotion' | 'team'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'emotion' | 'team'>('emotion');
 
-  // 渲染內容的邏輯
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -111,7 +148,7 @@ export default function Home() {
       case 'team':
         return <TeamList />;
       default:
-        return <Dashboard />;
+        return <EmotionAnalysis />;
     }
   };
 
@@ -119,44 +156,35 @@ export default function Home() {
     <main className="min-h-screen flex flex-col">
       {/* 頂部導覽列 (Navbar) */}
       <nav className="h-16 bg-[#3b2f28] flex items-center justify-between px-6 shadow-md z-10 text-white shrink-0">
-        <div className="font-bold text-xl tracking-wider">
-          System UI
+        <div className="font-medium text-lg tracking-wider">
+          投資人情緒與大盤走勢之關聯性
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-4 items-center">
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors duration-200 ${
-              activeTab === 'dashboard' ? 'bg-white/20' : 'hover:bg-white/10'
+            className={`flex items-center gap-2 transition-opacity duration-200 ${
+              activeTab === 'dashboard' ? 'opacity-100' : 'opacity-70 hover:opacity-90'
             }`}
           >
             <LayoutDashboard className="w-5 h-5" />
-            <span className="hidden sm:inline">儀表板</span>
           </button>
 
           <button
             onClick={() => setActiveTab('emotion')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors duration-200 ${
-              activeTab === 'emotion' ? 'bg-white/20' : 'hover:bg-white/10'
+            className={`flex items-center gap-2 transition-opacity duration-200 ${
+              activeTab === 'emotion' ? 'opacity-100' : 'opacity-70 hover:opacity-90'
             }`}
           >
             <BotMessageSquare className="w-5 h-5" />
-            <span className="hidden sm:inline">情緒分析</span>
           </button>
 
-          <button
-            onClick={() => setActiveTab('team')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors duration-200 ${
-              activeTab === 'team' ? 'bg-white/20' : 'hover:bg-white/10'
-            }`}
-          >
-            <Users className="w-5 h-5" />
-            <span className="hidden sm:inline">團隊名單</span>
-          </button>
+          <span className="text-white opacity-90 text-sm ml-2 hidden sm:inline">
+            第二組
+          </span>
         </div>
       </nav>
 
-      {/* 動態內容渲染區塊 */}
       <div className="flex-1 overflow-auto">
         {renderContent()}
       </div>
