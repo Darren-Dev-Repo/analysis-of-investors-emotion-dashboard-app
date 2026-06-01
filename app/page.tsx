@@ -24,9 +24,8 @@ const Dashboard = () => {
       <div className="relative w-full h-full bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700">
         <iframe
           title="Power BI Dashboard"
-          className="absolute top-0 left-0 w-full h-full"
+          className="absolute top-0 left-0 w-full h-full border-0"
           src="https://app.powerbi.com/reportEmbed?..." // 請將此處替換為您的 Power BI 網址
-          frameBorder="0"
           allowFullScreen
         ></iframe>
       </div>
@@ -41,14 +40,40 @@ const EmotionAnalysis = () => {
   const [title, setTitle] = useState<string>('');
   const [pushType, setPushType] = useState<string>('推');
   const [message, setMessage] = useState<string>('');
+  const [passcode, setPasscode] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [result, setResult] = useState<number | null>(null);
 
   // 處理送出按鈕點擊事件
-  const handleSubmit = () => {
-    console.log('--- 表單送出資料 ---');
-    console.log('標籤 (tag):', tag);
-    console.log('標題 (title):', title);
-    console.log('推/噓 (pushType):', pushType);
-    console.log('推文內容 (message):', message);
+const handleSubmit = async () => {
+    if (!title || !message) {
+      alert('請完整輸入標題與推文內容！');
+      return;
+    }
+    
+    setIsLoading(true);
+    setResult(null);
+
+    try {
+      // 呼叫我們建立好的 Next.js 後端 API
+      const res = await fetch('/api/sentiment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, message, pushType, passcode })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || '分析失敗');
+      }
+
+      setResult(data.score); // 拿到 7:3 加權後的最終分數
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -107,14 +132,41 @@ const EmotionAnalysis = () => {
           />
         </div>
 
-        {/* 送出按鈕列 */}
-        <div className="col-span-1 md:col-span-2 flex justify-end mt-10">
-          <button 
-            onClick={handleSubmit}
-            className="px-10 py-3 rounded-lg bg-[#f4d314] text-black font-bold text-lg hover:bg-yellow-400 active:scale-95 transition-all"
-          >
-            送出
-          </button>
+        {/* 送出按鈕與密碼列 */}
+        <div className="col-span-1 md:col-span-2 flex flex-col items-end gap-4 mt-6">
+          <div className="flex items-center gap-4 w-full justify-end">
+             {/* 展示授權碼輸入框 */}
+             <input 
+                type="password" 
+                value={passcode}
+                onChange={(e) => setPasscode(e.target.value)}
+                placeholder="輸入展示授權碼" 
+                className="p-3 rounded-lg bg-gray-700 text-white outline-none border border-gray-600 focus:border-[#f4d314] w-48 text-center"
+             />
+             <button 
+               onClick={handleSubmit}
+               disabled={isLoading}
+               className="px-10 py-3 rounded-lg bg-[#f4d314] text-black font-bold text-lg hover:bg-yellow-400 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+             >
+               {isLoading ? '演算法運算中...' : '送出分析'}
+             </button>
+          </div>
+          
+          {/* 分析結果動態顯示區 */}
+          {result !== null && (
+            <div className={`mt-6 w-full p-6 rounded-xl border-2 flex items-center justify-between transition-all duration-500
+              ${result > 0.2 ? 'border-red-500 bg-red-500/10' : 
+                result < -0.2 ? 'border-green-500 bg-green-500/10' : 
+                'border-gray-400 bg-gray-400/10'}`
+            }>
+              <span className="text-xl font-bold">BERT 綜合情緒指數</span>
+              <div className="flex items-center gap-3">
+                <span className="text-4xl font-extrabold tracking-wider">
+                  {result > 0 ? '+' : ''}{result}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>
